@@ -11,7 +11,15 @@ import com.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
+import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.File;
+import java.io.IOException;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -77,52 +85,52 @@ public class ArtcleController {
         }
         return new Response(status);
     }
-//
-//    @RequestMapping(value = "/upload", method = RequestMethod.POST)
-//    public Response fileUpload(HttpServletRequest request, @RequestParam("file")MultipartFile file) {
-//        if(!file.isEmpty()){
-//            String filePath = request.getSession().getServletContext().getRealPath("/image/")
-//                    + file.getOriginalFilename();
-//
-//            try {
-//                file.transferTo(new File(filePath));
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//                status = Status.ERROR;
-//            }
+
+    @RequestMapping(value = "/upload", method = RequestMethod.POST)
+    public Response fileUpload(HttpServletRequest request, @RequestParam("file") MultipartFile file) {
+        if (!file.isEmpty()) {
+            String filePath = request.getSession().getServletContext().getRealPath("/image/")
+                    + file.getOriginalFilename();
+
+            try {
+                file.transferTo(new File(filePath));
+            } catch (IOException e) {
+                e.printStackTrace();
+                status = Status.ERROR;
+            }
+        }
+        return new Response(status);
+    }
+
+    @RequestMapping(value = "/upload2", method = RequestMethod.POST)
+    public Response fileUpload2(HttpServletRequest request, HttpServletResponse response) {
+        CommonsMultipartResolver cmr = new CommonsMultipartResolver(request.getServletContext());
+
+        if (cmr.isMultipart(request)) {
+            MultipartHttpServletRequest mReq = (MultipartHttpServletRequest) request;
+            Iterator<String> files = mReq.getFileNames();
+
+//            while (files.hasNext()){
+            MultipartFile mf = mReq.getFile(files.next());
+
+            if (mf != null) {
+                String fileName = mf.getOriginalFilename();
+                String path = request.getServletContext().getRealPath("/img/") + fileName;
+                File file = new File(path);
+                if (!file.exists())
+                    file.mkdirs();
+                try {
+                    mf.transferTo(file);
+                    request.getSession().setAttribute("imgurl", path);
+                    System.out.println(path);
+                    response.sendRedirect(request.getContextPath() + "/index.jsp");
+                } catch (IOException e) {
+                    status = Status.ERROR;
+                    e.printStackTrace();
+                }
+            }
+        }
 //        }
-//        return new Response(status);
-//    }
-//
-//    @RequestMapping(value = "/upload2", method = RequestMethod.POST)
-//    public Response fileUpload2(HttpServletRequest request, HttpServletResponse response) {
-//        CommonsMultipartResolver cmr = new CommonsMultipartResolver(request.getServletContext());
-//
-//        if(cmr.isMultipart(request)) {
-//            MultipartHttpServletRequest mReq = (MultipartHttpServletRequest) request;
-//            Iterator<String> files = mReq.getFileNames();
-//
-////            while (files.hasNext()){
-//                MultipartFile mf = mReq.getFile(files.next());
-//
-//                if (mf != null) {
-//                    String fileName = mf.getOriginalFilename();
-//                    String path = request.getServletContext().getRealPath("/img/") + fileName;
-//                    File file = new File(path);
-//                    if (!file.exists())
-//                        file.mkdirs();
-//                    try {
-//                        mf.transferTo(file);
-//                        request.getSession().setAttribute("imgurl", path);
-//                        System.out.println(path);
-//                        response.sendRedirect(request.getContextPath() + "/index.jsp");
-//                    } catch (IOException e) {
-//                        status = Status.ERROR;
-//                        e.printStackTrace();
-//                    }
-//                }
-//            }
-////        }
-//        return new Response(status);
-//    }
+        return new Response(status);
+    }
 }
