@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>WB</title>
+    <link href="css/bootstrap.css" type="text/css" rel="stylesheet">
+    <link href="css/bootstrap-theme.css" type="text/css" rel="stylesheet">
+    <link href="css/normalize.css" rel="stylesheet">
+    <link href="css/blog.css" rel="stylesheet">
+</head>
+<style>
+    span.badge{
+        visibility: hidden;
+    }
+    div.col-lg-4 p a.btn{
+        margin-top: 65%;
+        margin-left: 50%;
+    }
+</style>
+<body>
+<div class="blog-masthead">
+    <div class="container">
+        <nav class="blog-nav">
+            <a class="blog-nav-item active" href="#">WB</a>
+        </nav>
+    </div>
+</div>
+<div class="container">
+    <button class="btn btn-primary" type="button"  style="margin-top: 20px">
+        当前文章数 <span class="badge">num</span>
+    </button>
+    <p class="text-right">
+        <button class="btn btn-primary" type="button" style="margin-top: -58px">Add</button>
+    </p>
+    <div class="jumbotron online" style="margin-top:20px" ms-repeat="mess" ms-controller="online">
+        <div class="row">
+            <div>
+                <p class="text-center lead">{{el.title}}</p>
+                <p class="text-right">
+                    <small>作者 ： {{el.author}}</small>
+                </p>
+                <p>{{el.text}}</p>
+                <p class="text-right">
+                    <button class="btn" type="button">Delete</button>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="js/jquery.js"></script>
+<script src="js/avalon.js"></script>
+<script src="js/bootstrap.js"></script>
+<script>
+    var m = avalon.define({
+        $id:"online",
+        mess:[
+
+        ]
+    } );
+    var temp = [];
+    $.getJSON("/article/all",function(data){
+        $.each(data.body,function(i,item){
+            temp[i] = item.article;
+        });
+        m.mess = temp;
+        var num = temp.length;
+        $(".badge").text(num).css("visibility","visible");
+    });
+    avalon.scan();
+</script>
+</body>
+</html>

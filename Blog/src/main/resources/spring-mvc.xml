@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/tx
+    	http://www.springframework.org/schema/tx/spring-tx.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/mvc
+    	http://www.springframework.org/schema/mvc/spring-mvc.xsd
+    	http://www.springframework.org/schema/data/jpa
+     	http://www.springframework.org/schema/data/jpa/spring-jpa.xsd 
+     	http://www.springframework.org/schema/aop 
+     	http://www.springframework.org/schema/aop/spring-aop.xsd">
+
+    <context:annotation-config/>
+    <context:component-scan base-package="com"/>
+    <mvc:default-servlet-handler/>
+    <!--<mvc:resources mapping="/image" location="image"/>-->
+
+    <mvc:annotation-driven>
+        <!-- 自定义参数解析器 -->
+        <mvc:argument-resolvers>
+            <bean
+                    class="org.springframework.data.web.PageableHandlerMethodArgumentResolver"/>
+        </mvc:argument-resolvers>
+
+        <mvc:message-converters>
+            <!-- 启动Spring MVC的注解功能，完成请求和注解POJO的映射 -->
+            <bean
+                    class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">
+                <!-- 解决延迟加载的实体转JSON报错 -->
+                <property name="objectMapper">
+                    <bean class="com.common.HibernateAwareObjectMapper"/>
+                </property>
+                <!-- 避免IE执行AJAX时,返回JSON出现下载文件 -->
+                <!-- <property name="supportedMediaTypes"> <list> <value>text/html;charset=UTF-8</value>
+                    <value>application/json;charset=UTF-8</value> </list> </property> -->
+            </bean>
+        </mvc:message-converters>
+
+    </mvc:annotation-driven>
+    <!--自定义拦截器-->
+    <!--<mvc:interceptors>-->
+        <!--<bean class="org.springframework.web.servlet.i18n.LocaleChangeInterceptor"/>-->
+        <!--<mvc:interceptor>-->
+            <!--<mvc:mapping path="/**"/>-->
+            <!--<bean class="com.interceptor.LoginInterceptor"/>-->
+        <!--</mvc:interceptor>-->
+<!--</mvc:interceptors>-->
+
+    <!--文件上传-->
+    <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver"
+          p:defaultEncoding="UTF-8"
+          p:maxUploadSize="2000000"/>
+    <!-- SpringMVC在超出上传文件限制时，会抛出org.springframework.web.multipart.MaxUploadSizeExceededException -->
+    <!-- 该异常是SpringMVC在检查上传的文件信息时抛出来的，而且此时还没有进入到Controller方法中 -->
+    <bean id="exceptionResolver" class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver">
+        <property name="exceptionMappings">
+            <props>
+                <!-- 遇到MaxUploadSizeExceededException异常时，自动跳转到/WEB-INF/jsp/error_fileupload.jsp页面 -->
+                <prop key="org.springframework.web.multipart.MaxUploadSizeExceededException">index</prop>
+            </props>
+        </property>
+    </bean>
+
+
+    <bean class="org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerAdapter"/>
+
+    <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource"
+          destroy-method="close"
+          p:driverClass="com.mysql.jdbc.Driver"
+          p:jdbcUrl="jdbc:mysql://localhost:3306/myku"
+          p:user="root"
+          p:password="9328"
+          p:maxPoolSize="40"
+          p:minPoolSize="1"
+          p:initialPoolSize="1"
+          p:maxIdleTime="20"/>
+
+    <!--<bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">-->
+        <!--<property name="viewClass" value="org.springframework.web.servlet.view.JstlView"/>-->
+        <!--<property name="prefix" value=""/>-->
+        <!--<property name="suffix" value=".html"/>-->
+    <!--</bean>-->
+
+    <tx:annotation-driven/>
+
+    <jpa:repositories base-package="com.repository" repository-impl-postfix="Impl"
+                      entity-manager-factory-ref="entityManagerFactory" transaction-manager-ref="transactionManager"/>
+
+    <bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+        <property name="dataSource" ref="dataSource"/>
+        <property name="packagesToScan" value="com.entity"/>
+        <!-- 指定JPA持久化提供商 -->
+        <property name="persistenceProvider">
+            <bean class="org.hibernate.jpa.HibernatePersistenceProvider"/>
+        </property>
+        <property name="jpaDialect">
+            <bean class="org.springframework.orm.jpa.vendor.HibernateJpaDialect"/>
+        </property>
+        <property name="jpaVendorAdapter">
+            <bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter">
+                <!--  不自动生成DDL -->
+                <property name="generateDdl" value="false"/>
+                <!-- 表示将打印所有生成的SQL。 -->
+                <property name="showSql" value="true"/>
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager">
+        <property name="entityManagerFactory" ref="entityManagerFactory"/>
+    </bean>
+</beans>
