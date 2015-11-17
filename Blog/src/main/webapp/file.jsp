@@ -19,6 +19,6 @@
   <input type="submit" value="submit"/><br>
   </form>
 
-
+<img alt="image" src="/article/showImg">
 </body>
 </html>

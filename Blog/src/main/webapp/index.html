@@ -32,10 +32,11 @@
         当前文章数 <span class="badge">num</span>
     </button>
     <p class="text-right">
-        <button class="btn btn-primary" type="button" style="margin-top: -58px">Add</button>
+        <a class="btn btn-primary" id="add" data-toggle="modal" data-target="#myModal" role="button"
+           style="margin-top: -58px">Add</a>
     </p>
     <div class="jumbotron online" style="margin-top:20px" ms-repeat="mess" ms-controller="online">
-        <div class="row">
+        <div class="row" ms-attr-value="{{el.id}}">
             <div>
                 <p class="text-center lead">{{el.title}}</p>
                 <p class="text-right">
@@ -43,8 +44,39 @@
                 </p>
                 <p>{{el.text}}</p>
                 <p class="text-right">
-                    <button class="btn" type="button">Delete</button>
+                    <button class="del btn" type="button" onclick="del(this)">Delete</button>
                 </p>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                        aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalLabel">New Article</h4>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="form-group">
+                        <label for="recipient-name" class="control-label">Title:</label>
+                        <input type="text" class="form-control" id="recipient-name">
+                    </div>
+                    <div class="form-group">
+                        <label for="recipient-author" class="control-label">Author:</label>
+                        <input type="text" class="form-control" id="recipient-author">
+                    </div>
+                    <div class="form-group">
+                        <label for="message-text" class="control-label">Article:</label>
+                        <textarea class="form-control" id="message-text"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="save">Save</button>
             </div>
         </div>
     </div>
@@ -69,6 +101,42 @@
         $(".badge").text(num).css("visibility","visible");
     });
     avalon.scan();
+    function del(obj) {
+        obj.parentNode.parentNode.parentNode.parentNode.remove();
+        var value = obj.parentNode.parentNode.parentNode.getAttribute("value");
+        $.ajax({
+            type: "POST",
+            url: "/article/delete/" + value,
+            contentType: "application/json",
+//            data:JSON.stringify({
+//                id:value
+//            }),
+            success: function () {
+                window.location.href = "index.html";
+            },
+            error: function (xhr) {
+                alert("Error " + xhr.status);
+            }
+        })
+    }
+    $("#save").click(function () {
+        $.ajax({
+            type: "POST",
+            url: "/article/add",
+            contentType: "application/json",
+            data: JSON.stringify({
+                title: $("#recipient-name").val(),
+                author: $("#recipient-author").val(),
+                text: $("#message-text").val()
+            }),
+            success: function () {
+                window.location.href = "index.html";
+            },
+            error: function (xhr) {
+                alert("Error " + xhr.status);
+            }
+        })
+    })
 </script>
 </body>
 </html>

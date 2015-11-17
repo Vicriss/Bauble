@@ -17,8 +17,7 @@ import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.Iterator;
 import java.util.List;
 
@@ -53,8 +52,9 @@ public class ArtcleController {
 
     @ResponseBody
     @RequestMapping(value = "/all", method = RequestMethod.GET)
-    public Response findAll() {
-        List<UserArticle> userArticleList = userArticleRepository.findByUserId(1);
+    public Response findAll(@ModelAttribute("userId") int userId) {
+        System.out.println("userId:" + userId);
+        List<UserArticle> userArticleList = userArticleRepository.findByUserId(userId);
         if (userArticleList == null)
             status = Status.ERROR;
         return new Response(status, userArticleList);
@@ -121,9 +121,9 @@ public class ArtcleController {
                     file.mkdirs();
                 try {
                     mf.transferTo(file);
-                    request.getSession().setAttribute("imgurl", path);
-                    System.out.println(path);
                     response.sendRedirect(request.getContextPath() + "/index.jsp");
+                    request.getSession().setAttribute("imgpath", path);
+                    System.out.println(path);
                 } catch (IOException e) {
                     status = Status.ERROR;
                     e.printStackTrace();
@@ -131,6 +131,36 @@ public class ArtcleController {
             }
         }
 //        }
+        return new Response(status);
+    }
+
+    @RequestMapping(value = "/showImg", method = RequestMethod.GET)
+    public Response showImg(HttpServletRequest request, HttpServletResponse response) {
+        String path = (String) request.getSession().getAttribute("imgpath");
+        File img = new File(path);
+
+        try {
+            FileInputStream fis = new FileInputStream(img);
+            OutputStream os = response.getOutputStream();
+//            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+//            int data = -1;
+//
+//            while ((data = fis.read()) != -1)
+//                bos.write(data);
+//
+            byte[] buffer = new byte[fis.available()];
+            int len = fis.read(buffer);
+            while (len != -1)
+                os.write(buffer);
+            os.flush();
+            fis.close();
+            os.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
         return new Response(status);
     }
 }
