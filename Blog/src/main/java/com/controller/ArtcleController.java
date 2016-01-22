@@ -106,9 +106,9 @@ public class ArtcleController {
     public Response fileUpload2(HttpServletRequest request, HttpServletResponse response) {
         CommonsMultipartResolver cmr = new CommonsMultipartResolver(request.getServletContext());
 
-        if (cmr.isMultipart(request)) {
-            MultipartHttpServletRequest mReq = (MultipartHttpServletRequest) request;
-            Iterator<String> files = mReq.getFileNames();
+            if (cmr.isMultipart(request)) {
+                MultipartHttpServletRequest mReq = (MultipartHttpServletRequest) request;
+                Iterator<String> files = mReq.getFileNames();
 
 //            while (files.hasNext()){
             MultipartFile mf = mReq.getFile(files.next());
@@ -137,7 +137,7 @@ public class ArtcleController {
     @RequestMapping(value = "/showImg", method = RequestMethod.GET)
     public Response showImg(HttpServletRequest request, HttpServletResponse response) {
         String path = (String) request.getSession().getAttribute("imgpath");
-        File img = new File(path);
+        File img = new File("E:\\GitRepo\\MyRepo\\Bauble\\Blog\\target\\maventest2\\img\\tou.png");
 
         try {
             FileInputStream fis = new FileInputStream(img);
